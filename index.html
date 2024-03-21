@@ -1,0 +1,219 @@
+<html>
+    
+<canvas id="tank" width="1500" height="900"></canvas>
+    <script src="tank.js"></script>
+	<script src="circle.js"></script>
+	<script src="bullet.js"></script>
+<script>
+	    var g_canvas=document.getElementById("tank");
+        var g_context=g_canvas.getContext("2d");
+        var FrameRate=30;
+        var g_TimeInterval=1000/FrameRate;
+	    var tank= new c_TANK(650,350);
+	     var g_enemy=new Array(4);
+        var g_Game_End_Text_Flag=0;
+        var g_Enemy_X_array=[g_canvas.width/2 , g_canvas.width/2 , 0-3500 , g_canvas.width+5000];
+        var g_Enemy_Y_array=[0-1000 , g_canvas.height+2500 , g_canvas.height/2 , g_canvas.height/2];
+        var g_Enemy_array_Length=g_enemy.length;
+	    var g_Score=0;
+	    var framecount=0;
+	var seconds=0;
+	    var g_distance=new Array(g_Enemy_array_Length);
+    a=setInterval(GameLoop, g_TimeInterval);
+    
+	function GameLoop()  
+    {
+		tank.m_rotateTurret();
+		f_start_time();
+		tank.bullet.m_Border_collision(g_canvas);
+		tank.m_Shoot();
+		f_Enemy_move();
+		f_enemy_bullet_collison();
+		f_enemy_tank_collison();
+		f_ClearCanvas();
+		tank.m_drawTank(g_context);
+		f_Draw_Enemy();
+		f_Score_Draw();
+		 if(g_Game_End_Text_Flag==1)
+               {
+                    f_Game_End_Draw();
+                    
+               }
+		
+	}
+	f_Enemy_initial();
+        function f_Enemy_initial()
+        {
+            for(var i=0; i<g_Enemy_array_Length; i++)
+                {
+                    g_enemy[i]=new c_Enemy(g_Enemy_X_array[i],g_Enemy_Y_array[i]);
+                    
+                }
+            
+            
+        }
+	function f_start_time()
+	{
+		framecount++;
+		if(framecount==30)
+			{
+				seconds++;
+			}
+	}
+        function f_Enemy_move()
+        {
+			
+            g_enemy[0].Enemy_Y+=g_enemy[0].Enemy_Move_Speed;
+				
+            g_enemy[1].Enemy_Y-=g_enemy[1].Enemy_Move_Speed;
+		
+		
+            g_enemy[2].Enemy_X+=g_enemy[2].Enemy_Move_Speed;
+			
+            g_enemy[3].Enemy_X-=g_enemy[3].Enemy_Move_Speed;
+					
+				
+			
+        }
+function f_Draw_Enemy()
+        {
+			
+            for(var i=0; i<g_Enemy_array_Length ; i++)
+                {
+					
+						
+                    g_enemy[i].m_draw_Enemy(g_context);
+						
+					
+					
+                }
+			framecount=0;
+            
+        }
+	        function f_Game_End_Draw() 
+        {
+            g_context.font="200px Arial";
+			g_context.fillStyle="#0474f7";
+            g_context.fillText("GAME OVER",150,450);
+            
+        }
+	function f_enemy_tank_collison()
+	{
+		for(var i=0;i<g_Enemy_array_Length;i++)
+			{
+		g_distance[i]=Math.sqrt(((tank.centerX-g_enemy[i].Enemy_X)*(tank.centerX-g_enemy[i].Enemy_X)) + ((tank.centerY-g_enemy[i].Enemy_Y)*(tank.centerY-g_enemy[i].Enemy_Y)));
+            
+            
+            
+            
+            if(g_distance[i]<(tank.radius+g_enemy[i].Enemy_Radius))
+                {  
+                       
+                   
+						
+                        g_enemy[i].Enemy_X=g_Enemy_X_array[i];
+                        g_enemy[i].Enemy_Y=g_Enemy_Y_array[i];
+					    g_enemy[i].Enemy_Move_Speed=parseInt(Math.random()*(15-10)+10);
+                         g_enemy[i].Enemy_Radius=parseInt(Math.random()*(80-20)+20);
+					      tank.radius+=5;
+					if(tank.radius>=g_canvas.height/2||tank.radius>=g_canvas.width/2)
+						{
+							tank.TurretHeight=0;
+							tank.TurretWidth=0;
+							
+							clearInterval(a);
+							g_Game_End_Text_Flag=1;
+						}
+                        
+                }
+			}
+	}
+	function f_enemy_bullet_collison()
+	{
+		for(var i=0;i<g_Enemy_array_Length;i++)
+			{
+		g_distance[i]=Math.sqrt(((tank.bullet.xpos-g_enemy[i].Enemy_X)*(tank.bullet.xpos-g_enemy[i].Enemy_X)) + ((tank.bullet.ypos-g_enemy[i].Enemy_Y)*(tank.bullet.ypos-g_enemy[i].Enemy_Y)));
+            
+            
+            
+            
+            if(g_distance[i]<(tank.bullet.radius+g_enemy[i].Enemy_Radius))
+                {  
+                       
+                   
+						
+                       g_Score++; 
+                    tank.bullet.xpos=tank.centerX;
+                    tank.bullet.ypos=tank.centerY;
+                    tank.bullet.radius=20;
+                    //tank.bullet.color="#f57546";
+           
+                    //tank.bullet.initial_velocity=20;
+                   
+            
+                    tank.bullet.Start_animat_flag=0;
+            
+                    tank.bullet.ySpeed=tank.bullet.initial_velocity;
+                    //tank.bullet.xSpeed=20;
+					g_enemy[i].Enemy_X=g_Enemy_X_array[i];
+                        g_enemy[i].Enemy_Y=g_Enemy_Y_array[i];
+					    g_enemy[i].Enemy_Move_Speed=parseInt(Math.random()*(15-10)+10);
+                         g_enemy[i].Enemy_Radius=parseInt(Math.random()*(80-20)+20);
+					      
+                        
+                }
+			}
+	}
+	 function f_ClearCanvas() 
+    {
+      g_context.clearRect(0, 0, g_canvas.width, g_canvas.height);
+      g_context.strokeRect(0, 0, g_canvas.width, g_canvas.height);
+		g_context.fillStyle="#000000";
+	  g_context.fillRect(0, 0, g_canvas.width, g_canvas.height);
+	}
+	function f_Score_Draw() //how many point you scored
+        {
+            g_context.font="40px Arial";
+			g_context.fillStyle="#ffffff";
+            g_context.fillText("SCORE: "+g_Score,1250,60);
+            
+        }
+	
+	  function f_OnKeyDown(l_event)
+        {
+           
+               {
+                if(l_event.keyCode == 37)
+                   {
+                        tank.MoveLeftflag=1
+                   }
+                if(l_event.keyCode == 39)
+                   {
+                        tank.MoveRightflag=1
+                   }
+                 if(l_event.keyCode==32)
+                {
+                 tank.bullet.Start_animat_flag=1;
+                }
+            }
+        }
+    
+    function f_OnKeyUp(l_event)
+    {
+        
+               {
+                 if(l_event.keyCode == 37)
+                   {
+                        tank.MoveLeftflag=0;
+                   }
+                if(l_event.keyCode == 39)
+                   {
+                        tank.MoveRightflag=0;
+                   }
+				   
+               }
+    }
+    
+    window.addEventListener("keydown",f_OnKeyDown);
+    window.addEventListener("keyup",f_OnKeyUp);
+	</script></html>
